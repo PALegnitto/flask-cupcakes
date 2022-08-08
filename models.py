@@ -4,6 +4,10 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+def connect_db(app):
+    db.app = app
+    db.init_app(app)
+
 
 class Cupcake(db.Model):
     """Cupcake"""
@@ -33,6 +37,8 @@ class Cupcake(db.Model):
 
         return {
             "id": self.id,
-            "name": self.name,
-            "calories": self.calories
+            "flavor": self.flavor,
+            "size": self.size,
+            "rating": self.rating,
+            "image": self.image
         }
