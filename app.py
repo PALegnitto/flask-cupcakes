@@ -25,7 +25,7 @@ def get_all_cupcakes():
 
 @app.get("/api/cupcakes/<int:cupcake_id>")
 def get_cupcake(cupcake_id):
-    """ Return JOSN {cupcake: [{id, flavor, size, rating, image}]} """
+    """ Return JOSN {cupcake: {id, flavor, size, rating, image}} """
 
     cupcake = Cupcake.query.get_or_404(cupcake_id)
     serialized = cupcake.serialize()
@@ -35,7 +35,7 @@ def get_cupcake(cupcake_id):
 @app.post("/api/cupcakes")
 def create_cupcake():
     """ Create cupcake from form data & return it.
-    Return JOSN {cupcake: [{id, flavor, size, rating, image}]} """
+    Return JOSN {cupcake: {id, flavor, size, rating, image}} """
 
     flavor = request.json["flavor"]
     size = request.json["size"]
@@ -53,5 +53,40 @@ def create_cupcake():
     serialized = new_cupcake.serialize()
 
     return (jsonify(cupcake=serialized), 201)
+
+    ############### Updating and Deleting#################
+
+@app.patch("/api/cupcakes/<int:cupcake_id>")
+def update_cupcake_value(cupcake_id):
+    """Updating individual values of a specific cupcake
+    Return JSON {cupcake: {id, flavor, size, rating, image}} """
+
+    cupcake = Cupcake.query.get_or_404(cupcake_id)
+
+    cupcake.flavor = request.json["flavor"]
+    cupcake.size = request.json["size"]
+    cupcake.rating = request.json["rating"]
+    cupcake.image = request.json["image"]
+
+    db.session.commit()
+
+    serialized = cupcake.serialize()
+
+    return jsonify(cupcake=serialized)
+
+@app.delete("/api/cupcakes/<int:cupcake_id>")
+def delete_cupcake(cupcake_id):
+    """Deleting a specific cupcake
+        Return JSON {deleted: [cupcake-id]} """
+
+    cupcake = Cupcake.query.get_or_404(cupcake_id)
+    db.session.delete(cupcake)
+    db.session.commit()
+
+    flash("Cupcake deleted!")
+
+
+
+    return "{deleted:" + f"{cupcake_id}" + "}"
 
 
