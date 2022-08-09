@@ -13,10 +13,14 @@ connect_db(app)
 
 app.config['SECRET_KEY'] = "I'LL NEVER TELL!!"
 
+@app.get("/")
+def homepage():
+
+    return render_template("index.html")
 
 @app.get("/api/cupcakes")
 def get_all_cupcakes():
-    """ Return JOSN {cupcakes: [{id, flavor, size, rating, image}, ...]} """
+    """ Return JSON {cupcakes: [{id, flavor, size, rating, image}, ...]} """
 
     cupcakes = Cupcake.query.all()
     serialized = [c.serialize() for c in cupcakes]
@@ -25,7 +29,7 @@ def get_all_cupcakes():
 
 @app.get("/api/cupcakes/<int:cupcake_id>")
 def get_cupcake(cupcake_id):
-    """ Return JOSN {cupcake: {id, flavor, size, rating, image}} """
+    """ Return JSON {cupcake: {id, flavor, size, rating, image}} """
 
     cupcake = Cupcake.query.get_or_404(cupcake_id)
     serialized = cupcake.serialize()
@@ -35,7 +39,7 @@ def get_cupcake(cupcake_id):
 @app.post("/api/cupcakes")
 def create_cupcake():
     """ Create cupcake from form data & return it.
-    Return JOSN {cupcake: {id, flavor, size, rating, image}} """
+    Return JSON {cupcake: {id, flavor, size, rating, image}} """
 
     flavor = request.json["flavor"]
     size = request.json["size"]
@@ -63,10 +67,10 @@ def update_cupcake_value(cupcake_id):
 
     cupcake = Cupcake.query.get_or_404(cupcake_id)
 
-    cupcake.flavor = request.json["flavor"]
-    cupcake.size = request.json["size"]
-    cupcake.rating = request.json["rating"]
-    cupcake.image = request.json["image"]
+    cupcake.flavor = request.json.get("flavor", cupcake.flavor)
+    cupcake.size = request.json.get("size", cupcake.size)
+    cupcake.rating = request.json.get("rating", cupcake.rating)
+    cupcake.image = request.json.get("image", cupcake.image)
 
     db.session.commit()
 
@@ -77,16 +81,16 @@ def update_cupcake_value(cupcake_id):
 @app.delete("/api/cupcakes/<int:cupcake_id>")
 def delete_cupcake(cupcake_id):
     """Deleting a specific cupcake
-        Return JSON {deleted: [cupcake-id]} """
+        Return JSON {deleted: cupcake_id} """
 
     cupcake = Cupcake.query.get_or_404(cupcake_id)
     db.session.delete(cupcake)
     db.session.commit()
 
-    flash("Cupcake deleted!")
+    # flash("Cupcake deleted!")
 
+    message = {"deleted": cupcake_id}
 
-
-    return "{deleted:" + f"{cupcake_id}" + "}"
+    return jsonify(message)
 
 

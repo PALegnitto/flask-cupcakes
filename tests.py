@@ -41,7 +41,8 @@ class CupcakeViewsTestCase(TestCase):
         db.session.add(cupcake)
         db.session.commit()
 
-        self.cupcake = cupcake
+        self.cupcake = cupcake # may be forgotten.. self.cupcake_id = cupcake.id
+        # ref to sqlalc could potentially get lost
 
     def tearDown(self):
         """Clean up fouled transactions."""
@@ -109,35 +110,32 @@ class CupcakeViewsTestCase(TestCase):
 
             self.assertEqual(Cupcake.query.count(), 2)
 
-    def update_cupcake_value(self):
+    def test_update_cupcake_value(self):
         with app.test_client() as client:
             url = f"/api/cupcakes/{self.cupcake.id}"
-            resp = client.get(url)
-
-            self.assertEqual(resp.status_code, 200)
-            data = resp.json
-            self.assertEqual(data,
-                {
-                    "flavor": "TestFlavor",
-                    "size": "TestSize",
-                    "rating": 5,
-                    "image": "http://test.com/cupcake.jpg"
-                }
-            )
-
-      def delete_cupcake(self):
-        with app.test_client() as client:
-            url = f"/api/cupcakes/{self.cupcake.id}"
-            resp = client.get(url)
+            resp = client.patch(url, json= {"flavor": "testedit"})
 
             self.assertEqual(resp.status_code, 200)
             data = resp.json
             self.assertEqual(data, {
                 "cupcake": {
                     "id": self.cupcake.id,
-                    "flavor": "TestFlavor",
-                    "size": "TestSize",
-                    "rating": 5,
-                    "image": "http://test.com/cupcake.jpg"
+                    "flavor": "testedit",
+                    "size": self.cupcake.size,
+                    "rating": self.cupcake.rating,
+                    "image": self.cupcake.image
                 }
             })
+
+    def test_delete_cupcake(self):
+        with app.test_client() as client:
+            url = f"/api/cupcakes/{self.cupcake.id}"
+            resp = client.delete(url)
+
+            self.assertEqual(resp.status_code, 200)
+            data = resp.json
+            self.assertEqual(data, {
+                "deleted": self.cupcake.id
+                })
+
+                #test failures
